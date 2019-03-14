@@ -1,16 +1,26 @@
 #!/bin/sh
+SCRIPT=$(readlink -f "$0")
+SCRIPT_DIR=$(dirname "$SCRIPT")
+. $SCRIPT_DIR/config.sh
+# ===
 
 TIMESTAMP=$(date +"%s")
 STDOUT_LOG=/var/log/rotate-backups_${TIMESTAMP}.log
 STDERR_LOG=/var/log/rotate-backups_${TIMESTAMP}_error.log
 
-###
-
 BR_MAIL_TO=admin
 BR_MAIL_SUBJECT="rotate-backups dry-run"
 
-/usr/local/src/rotate-backups/execute.sh \
+$SCRIPT_DIR/execute.sh \
     1>> "$STDOUT_LOG" \
     2>> "$STDERR_LOG"
 
-cat "$STDOUT_LOG" "$STDERR_LOG" # | mailx -Sttycharset=utf8 -s "$BR_MAIL_SUBJECT" "$BR_MAIL_TO"
+# ===
+
+export SLACK_UPLOAD_URL=$SLACK_UPLOAD_URL
+export SLACK_TOKEN=$SLACK_TOKEN
+export SLACK_HOOK=$SLACK_HOOK
+export SLACK_USERNAME=$SLACK_USERNAME
+export SLACK_CHANNEL=$SLACK_CHANNEL
+
+$SLACK_SH -i ':warning:' -f "$STDERR_LOG" -m "$(cat $STDOUT_LOG)"

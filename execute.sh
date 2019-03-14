@@ -41,12 +41,16 @@ FILES=$(docker run -t --rm --name $CONTAINER_NAME \
     cismet/rclone-rotate-backups \
         "$RCLONE_SRC" "$ROTATE_BACKUPS_PATH" "$ROTATE_BACKUPS_OPTIONS" | grep Deleting | awk '{print $7}')
 echo '```'
-for FILE in $FILES; do
-	echo " * backups/${FILE##~/mnt/}"
-done
+if [ -z $FILES ]; then
+    echo '...keine Dateien gefunden, welche gelöscht werden müssten...'
+else
+    for FILE in $FILES; do
+        echo " * backups/${FILE##~/mnt/}"
+    done
+fi
 echo '```'
 if [ "$REALRUN_ENABLED" = true ]; then
-	echo 'Zum Abschalten des automatischen Löschens am nächsten '$REALRUN_TIME' `'$DISABLE_CMD'` eingeben'
+	echo 'Zum Abschalten des automatischen Löschens am nächsten '$REALRUN_TIME' `'$DISABLE_CMD'` eingeben.'
 else
     echo 'Zum Manuellen entfernen von Dateien `'$MANUAL_CMD'` eingeben.'
 fi
